@@ -2,6 +2,7 @@ import asyncio
 import logging
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
 
 from handlers import stubs
 from settings import config
@@ -11,7 +12,7 @@ from settings import config
 async def main():
     logging.basicConfig(level=logging.INFO)
     bot = Bot(token=config.bot_token.get_secret_value())
-    dp = Dispatcher()
+    dp = Dispatcher(storage=MemoryStorage())
 
     dp.include_routers(stubs.router)
 
