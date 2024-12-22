@@ -4,7 +4,7 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from handlers import stubs
+from handlers import common, stubs
 from settings import config
 
 
@@ -14,7 +14,7 @@ async def main():
     bot = Bot(token=config.bot_token.get_secret_value())
     dp = Dispatcher(storage=MemoryStorage())
 
-    dp.include_routers(stubs.router)
+    dp.include_routers(common.router, stubs.router)
 
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot)
