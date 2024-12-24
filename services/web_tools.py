@@ -38,7 +38,9 @@ def set_faculty(driver: webdriver.Chrome, faculty: tuple[str, int]) -> None:
 
 def get_specialities(driver: webdriver.Chrome) -> list:
     speciality_element = Select(driver.find_element(By.NAME, "p_speciality"))
-    speciality_list = list(map(lambda x: x.text, speciality_element.options))
+    speciality_list = list(
+        filter(lambda x: x, map(lambda x: x.text, speciality_element.options))
+    )
     return speciality_list
 
 
@@ -49,7 +51,9 @@ def set_speciality(driver: webdriver.Chrome, speciality: str) -> None:
 
 def get_study_plans(driver: webdriver.Chrome) -> list:
     study_plan_element = Select(driver.find_element(By.NAME, "p_sp"))
-    study_plan_list = list(map(lambda x: x.text, study_plan_element.options))
+    study_plan_list = list(
+        filter(lambda x: x, map(lambda x: x.text, study_plan_element.options))
+    )
     return study_plan_list
 
 
@@ -60,7 +64,9 @@ def set_study_plan(driver: webdriver.Chrome, study_plan: str) -> None:
 
 def get_courses(driver: webdriver.Chrome) -> list:
     course_element = Select(driver.find_element(By.NAME, "p_course"))
-    course_list = list(map(lambda x: x.text, course_element.options))
+    course_list = list(
+        filter(lambda x: x.isdigit, map(lambda x: x.text, course_element.options))
+    )
     return course_list
 
 
@@ -74,6 +80,6 @@ def push_button(driver: webdriver.Chrome) -> None:
     button.click()
 
 
-def get_html_table(driver: webdriver.Chrome) -> None:
+def get_html_table(driver: webdriver.Chrome) -> str:
     html_table = driver.find_element(By.CLASS_NAME, "T_TABLE")
     return html_table.get_attribute("innerHTML")
