@@ -20,7 +20,7 @@ FILTERS = [
     ["1 семестр", "2 семестр", "Все семестры"],
     ["С экзаменом", "Без экзамена", "Без фильтра по экзамену"],
     ["С зачётом", "Без зачёта", "Без фильтра по зачёту"],
-    ["Вернуться к выбору предметной секции"],
+    ["⎌ Вернуться к выбору предметной секции"],
 ]
 
 
@@ -41,7 +41,7 @@ class TableStates(StatesGroup):
 @router.message(Command(commands=["study_plan"]))
 async def cmd_study_plan(message: Message, state: FSMContext):
     user_data = await state.get_data()
-    if "driver" in user_data:
+    if "driver" in user_data and user_data["driver"] is not None:
         end_connection(user_data["driver"])
     await state.clear()
 
@@ -211,13 +211,15 @@ async def choose_course(message: Message, state: FSMContext):
         push_button(driver)
         html_table = get_html_table(driver)
         end_connection(driver)
+        await state.update_data(driver=None)
+
         data_frame = parse_html_table(html_table)
         await state.update_data(data_frame=data_frame)
 
         sections = get_sections(data_frame)
         await message.answer(
             text="Теперь определитесь с предметной секцией",
-            reply_markup=make_column_keyboard(sections),
+            reply_markup=make_column_keyboard(sections + ['⎌ Выбрать другое подразделение университета']),
         )
         await state.set_state(TableStates.choose_discipline)
     else:
@@ -257,6 +259,28 @@ async def choose_section(message: Message, state: FSMContext):
             reply_markup=make_keyboard_by_template(FILTERS),
         )
         await state.set_state(TableStates.choose_filter)
+    elif message.text == '⎌ Выбрать другое подразделение университета':
+        user_data = await state.get_data()
+        if "driver" in user_data and user_data["driver"] is not None:
+            end_connection(user_data["driver"])
+        await state.clear()
+
+        driver = begin_connection()
+        await state.update_data(driver=driver)
+
+        faculties = get_faculties(driver)
+        await state.update_data(faculties=faculties)
+
+        await message.answer(
+            text="Выберите интересующее подразделение университета",
+            reply_markup=make_column_keyboard(list(map(lambda x: x[0], faculties.keys()))),
+        )
+        await state.set_state(StudyPlanStates.choosing_first_faculty)
+    else:
+        await message.answer(
+            text="Извините, но такой секции нет. Выберите интересующую предметную секцию",
+            reply_markup=make_column_keyboard(sections + ['⎌ Выбрать другое подразделение университета']),
+        )
 
 
 @router.message(TableStates.choose_filter)
@@ -290,7 +314,7 @@ async def choose_filter(message: Message, state: FSMContext):
         sections = get_sections(user_data["data_frame"])
         await message.answer(
             text="Теперь определитесь с предметной секцией",
-            reply_markup=make_column_keyboard(sections),
+            reply_markup=make_column_keyboard(sections + ['⎌ Выбрать другое подразделение университета']),
         )
         await state.set_state(TableStates.choose_discipline)
     else:
