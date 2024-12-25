@@ -57,11 +57,12 @@ def format_disciplines(data: pd.DataFrame) -> fmt.Text:
         ]
 
     disciplines = disciplines["name"].to_list()
-    print(data)
-    formatted_disciplines = fmt.as_marked_list(
-        *disciplines, *formatted_disciplines_by_choice, marker="● "
-    )
-    return formatted_disciplines
+    if len(disciplines) > 0 or len(formatted_disciplines_by_choice) > 0:
+        formatted_disciplines = fmt.as_marked_list(
+            *disciplines, *formatted_disciplines_by_choice, marker="● "
+        )
+        return formatted_disciplines
+    return fmt.Text("По таким фильтрам дисциплин нет!")
 
 
 def filtered_data(
@@ -102,18 +103,20 @@ def _filter_semester(data: pd.DataFrame, semester: int) -> pd.DataFrame:
 def _filter_exams(data: pd.DataFrame, semester: int, exam: bool = True) -> pd.DataFrame:
     if exam is None:
         return data
+    have_exam = (lambda x: x.notna()) if exam else (lambda x: x.isna())
     if semester == 1:
-        return data[data["first_ex"].notna()]
+        return data[have_exam(data["first_ex"])]
     elif semester == 2:
-        return data[data["second_ex"].notna()]
-    return data[(data["first_ex"].notna()) | (data["second_ex"].notna())]
+        return data[have_exam(data["second_ex"])]
+    return data[(have_exam(data["first_ex"])) | (have_exam(data["second_ex"]))]
 
 
 def _filter_tests(data: pd.DataFrame, semester: int, test: bool) -> pd.DataFrame:
     if test is None:
         return data
+    have_test = (lambda x: x.notna()) if test else (lambda x: x.isna())
     if semester == 1:
-        return data[data["first_test"].notna()]
+        return data[have_test(data["first_test"])]
     elif semester == 2:
-        return data[data["second_test"].notna()]
-    return data[(data["first_test"].notna()) | (data["second_test"].notna())]
+        return data[have_test(data["second_test"])]
+    return data[(have_test(data["first_test"])) | (have_test(data["second_test"]))]

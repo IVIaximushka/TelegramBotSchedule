@@ -33,10 +33,10 @@ def get_faculties(driver: webdriver.Chrome) -> dict:
 
 def set_faculty(driver: webdriver.Chrome, faculty: tuple[str, int]) -> None:
     faculty_element = Select(driver.find_element(By.NAME, "p_faculty"))
-    faculty_element.select_by_visible_text(" " * faculty[1] + faculty[0])
+    faculty_element.select_by_visible_text(" " * faculty[1] * 4 + faculty[0])
 
 
-def get_specialities(driver: webdriver.Chrome) -> list:
+def get_specialities(driver: webdriver.Chrome) -> list[str]:
     speciality_element = Select(driver.find_element(By.NAME, "p_speciality"))
     speciality_list = list(
         filter(lambda x: x, map(lambda x: x.text, speciality_element.options))
@@ -49,7 +49,7 @@ def set_speciality(driver: webdriver.Chrome, speciality: str) -> None:
     speciality_element.select_by_visible_text(speciality)
 
 
-def get_study_plans(driver: webdriver.Chrome) -> list:
+def get_study_plans(driver: webdriver.Chrome) -> list[str]:
     study_plan_element = Select(driver.find_element(By.NAME, "p_sp"))
     study_plan_list = list(
         filter(lambda x: x, map(lambda x: x.text, study_plan_element.options))
@@ -62,10 +62,10 @@ def set_study_plan(driver: webdriver.Chrome, study_plan: str) -> None:
     study_plan_element.select_by_visible_text(study_plan)
 
 
-def get_courses(driver: webdriver.Chrome) -> list:
+def get_courses(driver: webdriver.Chrome) -> list[str]:
     course_element = Select(driver.find_element(By.NAME, "p_course"))
     course_list = list(
-        filter(lambda x: x.isdigit, map(lambda x: x.text, course_element.options))
+        filter(lambda x: x.isdigit(), map(lambda x: x.text, course_element.options))
     )
     return course_list
 
