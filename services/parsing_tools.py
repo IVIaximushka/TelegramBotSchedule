@@ -47,7 +47,7 @@ def format_disciplines(data: pd.DataFrame) -> fmt.Text:
 
         formatted_disciplines_by_choice.append(
             fmt.as_marked_section(
-                discipline["name"] + ":", *disciplines_by_choice, marker="   ◦ "
+                discipline["hours"] + ":", *disciplines_by_choice, marker="   ◦ "
             )
         )
 
@@ -56,7 +56,7 @@ def format_disciplines(data: pd.DataFrame) -> fmt.Text:
             & ~(data["id"].notna() & data["id"].str.contains(discipline["id"]))
         ]
 
-    disciplines = disciplines["name"].to_list()
+    disciplines = disciplines["hours"].to_list()
     if len(disciplines) > 0 or len(formatted_disciplines_by_choice) > 0:
         formatted_disciplines = fmt.as_marked_list(
             *disciplines, *formatted_disciplines_by_choice, marker="● "
@@ -71,12 +71,14 @@ def filtered_data(
     semester: int = 0,
     exam: bool = None,
     test: bool = None,
+    hours: bool = False,
 ) -> pd.DataFrame:
 
     disciplines = _get_disciplines(data, section)
     disciplines = _filter_semester(disciplines, semester)
     disciplines = _filter_exams(disciplines, semester, exam)
     disciplines = _filter_tests(disciplines, semester, test)
+    disciplines = _add_hours(disciplines, semester, hours)
 
     return disciplines
 
@@ -120,3 +122,25 @@ def _filter_tests(data: pd.DataFrame, semester: int, test: bool) -> pd.DataFrame
     elif semester == 2:
         return data[have_test(data["second_test"])]
     return data[(have_test(data["first_test"])) | (have_test(data["second_test"]))]
+
+
+def _add_hours(data: pd.DataFrame, semester: int, add: bool) -> pd.DataFrame:
+    if not add:
+        data["hours"] = data["name"]
+        return data
+    if semester == 1:
+        semester_string = "first"
+    elif semester == 2:
+        semester_string = "second"
+    else:
+        semester_string = "all"
+    data["hours"] = (
+        data["name"]
+        + ": "
+        + data[semester_string + "_lec"]
+        + "/"
+        + data[semester_string + "_prac"]
+        + "/"
+        + data[semester_string + "_lab"]
+    )
+    return data

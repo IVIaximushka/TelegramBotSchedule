@@ -20,6 +20,7 @@ FILTERS = [
     ["1 семестр", "2 семестр", "Все семестры"],
     ["С экзаменом", "Без экзамена", "Без фильтра по экзамену"],
     ["С зачётом", "Без зачёта", "Без фильтра по зачёту"],
+    ["Показать количество часов", "Убрать количество часов"],
     ["⎌ Вернуться к выбору предметной секции"],
 ]
 
@@ -240,6 +241,7 @@ async def choose_section(message: Message, state: FSMContext):
         await state.update_data(semester=0)
         await state.update_data(exam=None)
         await state.update_data(test=None)
+        await state.update_data(hours=False)
         user_data = await state.get_data()
         await message.answer(
             text="Учебный план готов!",
@@ -251,11 +253,13 @@ async def choose_section(message: Message, state: FSMContext):
                 user_data["semester"],
                 user_data["exam"],
                 user_data["test"],
+                user_data["hours"],
             )
         )
         await message.answer(**study_plan.as_kwargs())
         await message.answer(
-            text="Можете выбрать фильтр на учебный план",
+            text="Можете выбрать фильтры на учебный план\n\n"
+                 "Часы указаны в формате(лекции/практики/лабораторные)",
             reply_markup=make_keyboard_by_template(FILTERS),
         )
         await state.set_state(TableStates.choose_filter)
@@ -308,8 +312,15 @@ async def choose_filter(message: Message, state: FSMContext):
         else:
             test = None
         await state.update_data(test=test)
+    elif message.text in FILTERS[3]:
+        hours = message.text
+        if hours == FILTERS[3][0]:
+            hours = True
+        else:
+            hours = False
+        await state.update_data(hours=hours)
 
-    if message.text in FILTERS[3]:
+    if message.text in FILTERS[-1]:
         user_data = await state.get_data()
         sections = get_sections(user_data["data_frame"])
         await message.answer(
@@ -326,6 +337,7 @@ async def choose_filter(message: Message, state: FSMContext):
                 user_data["semester"],
                 user_data["exam"],
                 user_data["test"],
+                user_data["hours"],
             )
         )
         await message.answer(**study_plan.as_kwargs())
